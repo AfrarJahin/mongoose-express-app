@@ -56,9 +56,9 @@ app.get("/users", async (request, response) => {
                 as: "phone"
             },
         },
-       /* {
-            $unwind: "$phones"
-        },*/
+        /* {
+             $unwind: "$phones"
+         },*/
     ]);
 
     try {
@@ -89,28 +89,35 @@ app.get("/comments", async (request, response) => {
 });
 
 app.get("/post", async (request, response) => {
+    const cposts = await Post.find().populate('user');
     const posts = await Post.aggregate([
         {
             $lookup: {
                 from: "users",
-                localField: "_id",
-                foreignField: "user",
+                localField: "user",
+                foreignField: "_id",
                 as: "user"
             }
         },
         {
             $lookup: {
                 from: "comments",
-                localField: "_id",
+                localField: "     ",
                 foreignField: "post",
                 as: "comment"
             },
 
         },
+        {
+            $project: {
+                "user.name": 1,
+                "comment.comment": 1,
+            }
+        }
     ]);
 
     try {
-        response.send(posts);
+        response.send({cposts, posts});
     } catch (error) {
         response.status(500).send(error);
     }
